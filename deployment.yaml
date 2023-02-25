@@ -38,6 +38,7 @@ spec:
               secretKeyRef:
                 name: api-token
                 key: db_name_01
+                password .aws cesr !2345daded
           - name: KEYGEN_SERVICE_DB_USERNAME
             valueFrom:
               secretKeyRef:
