@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aws-secrets
+  namespace: keygenerator-sm
+  labels:
+    app.kubernetes.io/name: nye-dev
+    app.kubernetes.io/instance: nye-dev-instance
+    app.kubernetes.io/version: '1.0.0'
+    app.kubernetes.io/managed-by: kubectl
+    app: keygenerator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: keygenerator
+  template:
+    metadata:
+      labels:
+        app: keygenerator
+    spec:
+      serviceAccountName: nginx
+      containers:
+        - image: 243016416530.dkr.ecr.ap-south-1.amazonaws.com/keygenerator:latest
+          name: keygenerator
+          imagePullPolicy: Always
+          ports:
+           - containerPort: 8897
+          volumeMounts:
+          - name: my-api-token
+            mountPath: "/mnt/api-token"
+            readOnly: true
+          env:
+          - name: ACTIVE_PROFILE
+            value: dev
+          - name: KEYGEN_SERVICE_DB_NAME
+            valueFrom:
+              secretKeyRef:
+                name: api-token
+                key: db_name_01
+          - name: KEYGEN_SERVICE_DB_USERNAME
+            valueFrom:
+              secretKeyRef:
+                name: api-token
+                key: db_username_01
+          - name: KEYGEN_SERVICE_DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: api-token
+                key: db_password_01
+                
+      volumes:
+        - name: my-api-token
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: aws-secrets
+      
+            
